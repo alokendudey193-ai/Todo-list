@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>DevPulse — Productivity Workspace</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+
+    /* ================================
+       RESET
+    ================================= */
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #070b14;
+        color: #ffffff;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+
+    /* ================================
+       BACKGROUND
+    ================================= */
+
+    .background {
+        position: fixed;
+        inset: 0;
+        z-index: -5;
+        overflow: hidden;
+        background:
+            radial-gradient(
+                circle at 15% 20%,
+                rgba(99, 102, 241, 0.20),
+                transparent 30%
+            ),
+            radial-gradient(
+                circle at 85% 70%,
+                rgba(139, 92, 246, 0.18),
+                transparent 30%
+            ),
+            #070b14;
+    }
+
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(90px);
+        opacity: 0.35;
+        animation: float 10s ease-in-out infinite;
+    }
+
+    .orb-one {
+        width: 350px;
+        height: 350px;
+        background: #4f46e5;
+        top: -120px;
+        left: -100px;
+    }
+
+    .orb-two {
+        width: 300px;
+        height: 300px;
+        background: #9333ea;
+        right: -100px;
+        bottom: 50px;
+        animation-delay: -4s;
+    }
+
+    .orb-three {
+        width: 200px;
+        height: 200px;
+        background: #2563eb;
+        left: 45%;
+        top: 35%;
+        opacity: 0.15;
+        animation-delay: -7s;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translate(0, 0);
+        }
+
+        50% {
+            transform: translate(25px, -25px);
+        }
+    }
+
+
+    /* ================================
+       NAVBAR
+    ================================= */
+
+    nav {
+        width: 100%;
+        height: 72px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 0 6%;
+
+        background: rgba(7, 11, 20, 0.70);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+
+        position: relative;
+        z-index: 10;
+    }
+
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .logo-icon {
+        width: 42px;
+        height: 42px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 12px;
+
+        background: linear-gradient(
+            135deg,
+            #6366f1,
+            #8b5cf6
+        );
+
+        box-shadow:
+            0 8px 30px rgba(99, 102, 241, 0.35);
+
+        font-size: 18px;
+    }
+
+    .logo-text {
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    .logo-text span {
+        color: #818cf8;
+    }
+
+    .nav-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .status-dot {
+        width: 7px;
+        height: 7px;
+        background: #22c55e;
+        border-radius: 50%;
+
+        box-shadow: 0 0 10px #22c55e;
+    }
+
+
+    /* ================================
+       HERO
+    ================================= */
+
+    .hero {
+        min-height: calc(100vh - 72px);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        padding: 70px 20px 80px;
+    }
+
+    .hero-container {
+        width: 100%;
+        max-width: 1150px;
+        text-align: center;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+
+        padding: 8px 14px;
+
+        border-radius: 999px;
+
+        background: rgba(99, 102, 241, 0.10);
+        border: 1px solid rgba(129, 140, 248, 0.25);
+
+        color: #a5b4fc;
+
+        font-size: 12px;
+        font-weight: 600;
+
+        margin-bottom: 25px;
+
+        animation: fadeUp 0.8s ease forwards;
+    }
+
+    .badge i {
+        color: #818cf8;
+    }
+
+    h1 {
+        font-size: clamp(44px, 7vw, 82px);
+        line-height: 1.02;
+        letter-spacing: -4px;
+        font-weight: 800;
+
+        max-width: 900px;
+        margin: auto;
+
+        animation: fadeUp 0.8s ease 0.1s both;
+    }
+
+    h1 .gradient {
+        background: linear-gradient(
+            100deg,
+            #818cf8,
+            #a78bfa,
+            #c084fc
+        );
+
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .hero-description {
+        max-width: 650px;
+        margin: 25px auto 0;
+
+        color: #94a3b8;
+
+        font-size: 16px;
+        line-height: 1.8;
+
+        animation: fadeUp 0.8s ease 0.2s both;
+    }
+
+
+    /* ================================
+       ACTION CARDS
+    ================================= */
+
+    .action-grid {
+        max-width: 850px;
+
+        margin: 55px auto 0;
+
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 20px;
+
+        animation: fadeUp 0.8s ease 0.3s both;
+    }
+
+    .action-card {
+        position: relative;
+
+        text-align: left;
+
+        padding: 30px;
+
+        border-radius: 22px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.08),
+                rgba(255,255,255,0.025)
+            );
+
+        border: 1px solid rgba(255,255,255,0.10);
+
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+
+        overflow: hidden;
+
+        transition:
+            transform 0.35s ease,
+            border-color 0.35s ease,
+            box-shadow 0.35s ease;
+    }
+
+    .action-card::before {
+        content: "";
+
+        position: absolute;
+
+        width: 150px;
+        height: 150px;
+
+        border-radius: 50%;
+
+        top: -80px;
+        right: -70px;
+
+        background: #6366f1;
+        filter: blur(60px);
+
+        opacity: 0.18;
+    }
+
+    .action-card:hover {
+        transform: translateY(-8px);
+
+        border-color: rgba(129,140,248,0.45);
+
+        box-shadow:
+            0 25px 70px rgba(0,0,0,0.35),
+            0 0 40px rgba(99,102,241,0.10);
+    }
+
+    .card-icon {
+        width: 55px;
+        height: 55px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 15px;
+
+        font-size: 20px;
+
+        margin-bottom: 22px;
+    }
+
+    .todo-icon {
+        color: #a5b4fc;
+        background: rgba(99,102,241,0.15);
+        border: 1px solid rgba(129,140,248,0.20);
+    }
+
+    .dashboard-icon {
+        color: #c4b5fd;
+        background: rgba(139,92,246,0.15);
+        border: 1px solid rgba(167,139,250,0.20);
+    }
+
+    .action-card h2 {
+        font-size: 21px;
+        margin-bottom: 9px;
+    }
+
+    .action-card p {
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.7;
+        margin-bottom: 25px;
+    }
+
+
+    /* ================================
+       BUTTONS
+    ================================= */
+
+    .action-button {
+        width: 100%;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 13px 16px;
+
+        border-radius: 11px;
+
+        text-decoration: none;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        color: white;
+
+        transition: all 0.25s ease;
+    }
+
+    .todo-button {
+        background: linear-gradient(
+            135deg,
+            #4f46e5,
+            #6366f1
+        );
+
+        box-shadow:
+            0 8px 25px rgba(79,70,229,0.25);
+    }
+
+    .dashboard-button {
+        background: linear-gradient(
+            135deg,
+            #7c3aed,
+            #8b5cf6
+        );
+
+        box-shadow:
+            0 8px 25px rgba(124,58,237,0.25);
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.12);
+    }
+
+    .action-button i {
+        transition: transform 0.25s ease;
+    }
+
+    .action-button:hover i {
+        transform: translateX(5px);
+    }
+
+
+    /* ================================
+       QUICK STATS
+    ================================= */
+
+    .quick-stats {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        gap: 45px;
+
+        margin-top: 55px;
+
+        animation: fadeUp 0.8s ease 0.4s both;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 20px;
+        font-weight: 800;
+    }
+
+    .stat-label {
+        margin-top: 5px;
+
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+
+        color: #64748b;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 35px;
+
+        background: rgba(255,255,255,0.10);
+    }
+
+
+    /* ================================
+       FOOTER
+    ================================= */
+
+    footer {
+        text-align: center;
+
+        padding: 25px 20px;
+
+        border-top: 1px solid rgba(255,255,255,0.06);
+
+        color: #475569;
+
+        font-size: 11px;
+    }
+
+    footer strong {
+        color: #64748b;
+    }
+
+
+    /* ================================
+       ANIMATION
+    ================================= */
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(25px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+
+    /* ================================
+       RESPONSIVE
+    ================================= */
+
+    @media (max-width: 700px) {
+
+        nav {
+            padding: 0 20px;
+        }
+
+        .nav-status {
+            display: none;
+        }
+
+        .hero {
+            padding: 55px 18px;
+        }
+
+        h1 {
+            letter-spacing: -2px;
+        }
+
+        .hero-description {
+            font-size: 14px;
+        }
+
+        .action-grid {
+            grid-template-columns: 1fr;
+            margin-top: 40px;
+        }
+
+        .action-card {
+            padding: 25px;
+        }
+
+        .quick-stats {
+            gap: 20px;
+        }
+
+        .stat-divider {
+            height: 28px;
+        }
+
+        .stat-number {
+            font-size: 17px;
+        }
+
+        .stat-label {
+            font-size: 8px;
+        }
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- Background -->
+<div class="background">
+    <div class="orb orb-one"></div>
+    <div class="orb orb-two"></div>
+    <div class="orb orb-three"></div>
+</div>
+
+
+<!-- ================================
+     NAVBAR
+================================= -->
+
+<nav>
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+
+        <div class="logo-text">
+            Dev<span>Pulse</span>
+        </div>
+
+    </div>
+
+    <div class="nav-status">
+        <span class="status-dot"></span>
+        Workspace Online
+    </div>
+
+</nav>
+
+
+<!-- ================================
+     HERO
+================================= -->
+
+<main class="hero">
+
+    <div class="hero-container">
+
+        <div class="badge">
+            <i class="fa-solid fa-sparkles"></i>
+            Personal Productivity Workspace
+        </div>
+
+
+        <h1>
+            Plan your work.
+            <br>
+            <span class="gradient">Track your progress.</span>
+        </h1>
+
+
+        <p class="hero-description">
+            A simple workspace to manage your daily tasks,
+            stay focused and understand your productivity
+            through meaningful insights.
+        </p>
+
+
+        <!-- ================================
+             ACTION CARDS
+        ================================= -->
+
+        <div class="action-grid">
+
+
+            <!-- TODO CARD -->
+
+            <div class="action-card">
+
+                <div class="card-icon todo-icon">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+
+                <h2>
+                    Todo List
+                </h2>
+
+                <p>
+                    Add your daily tasks, mark them complete
+                    and keep everything synchronized with
+                    your Google Sheets task list.
+                </p>
+
+                <!-- Connected to todo.html -->
+                <a href="todo.html"
+                   class="action-button todo-button">
+
+                    <span>
+                        Go to TODO List
+                    </span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+
+            <!-- DASHBOARD CARD -->
+
+            <div class="action-card">
+
+                <div class="card-icon dashboard-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+
+                <h2>
+                    Dashboard
+                </h2>
+
+                <p>
+                    Analyze completed tasks, pending work,
+                    productivity ratios and your overall
+                    task performance.
+                </p>
+
+                <!-- Connected to dashboard.html -->
+                <a href="dashboard.html"
+                   class="action-button dashboard-button">
+
+                    <span>
+                        Go to Dashboard
+                    </span>
+
+                    <i class="fa-solid fa-arrow-right"></i>
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================
+             QUICK STATS
+        ================================= -->
+
+        <div class="quick-stats">
+
+            <div class="stat">
+                <div class="stat-number">01</div>
+                <div class="stat-label">Workspace</div>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat">
+                <div class="stat-number">02</div>
+                <div class="stat-label">Tools</div>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Possibilities</div>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- ================================
+     FOOTER
+================================= -->
+
+<footer>
+
+    <p>
+        <strong>DevPulse</strong>
+        &nbsp;•&nbsp;
+        Personal Productivity Workspace
+        &nbsp;•&nbsp;
+        <span id="year"></span>
+    </p>
+
+</footer>
+
+
+<!-- ================================
+     JAVASCRIPT
+================================= -->
+
+<script>
+
+    // Current year
+    document.getElementById("year").textContent =
+        new Date().getFullYear();
+
+
+    // Small entrance effect
+    document.addEventListener("DOMContentLoaded", function () {
+
+        console.log("DevPulse workspace loaded successfully.");
+
+    });
+
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", function (event) {
+
+        // Press T → Todo List
+        if (
+            event.key.toLowerCase() === "t" &&
+            !event.ctrlKey &&
+            !event.altKey &&
+            !event.shiftKey
+        ) {
+            window.location.href = "todo.html";
+        }
+
+        // Press D → Dashboard
+        if (
+            event.key.toLowerCase() === "d" &&
+            !event.ctrlKey &&
+            !event.altKey &&
+            !event.shiftKey
+        ) {
+            window.location.href = "dashboard.html";
+        }
+
+    });
+
+</script>
+```
+
+</body>
+</html>
