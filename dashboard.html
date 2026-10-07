@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Performance & Productivity Intelligence Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Smooth transitions for theme toggle and interactive rows */
+        * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+        }
+        
+        /* Custom scrollbar for clean dashboard styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.04);
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.03);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.4);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.7);
+        }
+
+        /* Dedicated Print to PDF styling rules */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .chart-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+            }
+            .task-table-wrap {
+                box-shadow: none !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            .page-break {
+                page-break-before: always;
+            }
+        }
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white">
+
+    <nav class="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-slate-900 dark:text-white tracking-tight text-lg">DevPulse</span>
+                        <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-900/60 text-brand-700 dark:text-brand-300">Gemini Pro Analytics</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Productivity & Skill Acquisition Matrix</p>
+                </div>
+            </div>
+
+            <!-- Top Actions: Search & Utility -->
+            <div class="flex items-center space-x-3 no-print">
+                <!-- Fast New Task Modal Trigger -->
+                <button onclick="openAddTaskModal()" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white shadow-sm flex items-center space-x-1.5 transition">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>New Task</span>
+                </button>
+
+                <!-- Export to PDF Button -->
+                <button onclick="handlePrintExport()" class="px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center space-x-1.5 shadow-sm transition" title="Print report or save as PDF">
+                    <i class="fa-solid fa-file-pdf text-red-500"></i>
+                    <span class="hidden sm:inline">Export PDF</span>
+                </button>
+
+                <!-- Theme Toggle Button -->
+                <button id="themeToggleBtn" onclick="toggleDarkMode()" aria-label="Toggle theme" class="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Print-Only Executive Header -->
+        <div class="print-only border-b border-slate-300 pb-4 mb-4">
+            <h1 class="text-2xl font-bold text-slate-900">Task Performance & Productivity Intelligence Report</h1>
+            <p class="text-sm text-slate-600">Generated on <span id="printDate"></span> • Gemini Analytics Engine</p>
+        </div>
+
+        <!-- AI Diagnostic & Actionable Recommendation Banner -->
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 text-white p-5 sm:p-6 shadow-xl shadow-brand-500/10">
+            <div class="absolute -right-8 -bottom-8 w-44 h-44 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                <div class="flex items-start space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-300 flex-shrink-0 text-lg">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs uppercase font-extrabold tracking-wider bg-white/25 px-2 py-0.5 rounded">Gemini AI Audit</span>
+                            <span id="aiScoreBadge" class="text-xs font-semibold text-emerald-300">Top Priority On Track</span>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-bold mt-1">High-Value Momentum Detected</h2>
+                        <p id="aiDynamicInsight" class="text-xs sm:text-sm text-indigo-100 max-w-2xl mt-0.5 leading-relaxed">
+                            Excellent win on <strong class="text-white">Prepare for MERN interview</strong> and your daily coding baseline. To prevent interview stagnation, conquer <strong class="text-white">Learn JavaScript DOM</strong> and <strong class="text-white">Practice MongoDB</strong> before rewarding yourself with the 1-hour gaming session.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 self-start md:self-center flex-shrink-0">
+                    <button onclick="refreshRecommendations()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur text-white flex items-center space-x-1.5 transition">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh Audit</span>
+                    </button>
+                    <button onclick="autoResolveDeduplication()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white text-brand-700 hover:bg-brand-50 font-bold flex items-center space-x-1.5 shadow transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Optimize Log</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+            <!-- KPI 1: Total Tasks -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Tasks</span>
+                    <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-list-check"></i>
+                    </span>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiTotalTasks" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">8</span>
+                    <span class="text-[11px] text-slate-400">Tracked Units</span>
+                </div>
+                <div class="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-slate-400 h-full w-full"></div>
+                </div>
+            </div>
+
+            <!-- KPI 2: Completed -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed</span>
+                    <span class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </span>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiCompletedTasks" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">2</span>
+                    <span id="kpiCompletedPct" class="text-xs font-bold text-emerald-600 dark:text-emerald-400">25.0%</span>
+                </div>
+                <div class="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="kpiCompletedBar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 25%;"></div>
+                </div>
+            </div>
+
+            <!-- KPI 3: Pending -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending</span>
+                    <span class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-clock"></i>
+                    </span>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiPendingTasks" class="text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400">6</span>
+                    <span id="kpiPendingPct" class="text-xs font-semibold text-amber-500">75.0%</span>
+                </div>
+                <div class="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="kpiPendingBar" class="bg-amber-500 h-full transition-all duration-500" style="width: 75%;"></div>
+                </div>
+            </div>
+
+            <!-- KPI 4: Technical Workload -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tech vs Leisure</span>
+                    <span class="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-code"></i>
+                    </span>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiTechRatio" class="text-2xl sm:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400">75%</span>
+                    <span class="text-[11px] text-slate-400">6 Dev / 2 Play</span>
+                </div>
+                <div class="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="kpiTechBar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 75%;"></div>
+                </div>
+            </div>
+
+            <!-- KPI 5: Focus / Impact Velocity -->
+            <div class="col-span-2 lg:col-span-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">High-Impact Velocity</span>
+                    <span class="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-bolt"></i>
+                    </span>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiHighImpactScore" class="text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400">50%</span>
+                    <span id="kpiHighImpactSub" class="text-[11px] text-purple-500 font-semibold">2 of 4 Crucial</span>
+                </div>
+                <div class="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div id="kpiImpactBar" class="bg-purple-500 h-full transition-all duration-500" style="width: 50%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Chart 1: Donut Completion Distribution -->
+            <div class="chart-card lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-sm">Execution Completion Split</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Real-time status tracking</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" id="donutTotalCountTag">8 Total</span>
+                    </div>
+                    <div class="relative h-60 my-3 flex items-center justify-center">
+                        <canvas id="statusDonutChart"></canvas>
+                        <!-- Center overlay text -->
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span id="centerDonutPct" class="text-2xl font-extrabold text-slate-900 dark:text-white">25%</span>
+                            <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Done</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Custom status summary legends -->
+                <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <span class="text-slate-600 dark:text-slate-400">Completed:</span>
+                        <strong id="legendCompletedVal" class="text-slate-900 dark:text-white ml-auto">2</strong>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        <span class="text-slate-600 dark:text-slate-400">Pending:</span>
+                        <strong id="legendPendingVal" class="text-slate-900 dark:text-white ml-auto">6</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart 2: Category Breakdown Bar / Polar Chart -->
+            <div class="chart-card lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white text-sm">Domain Categorization Breakdown</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Effort distribution across dev domains & leisure</p>
+                        </div>
+                        <div class="flex items-center space-x-1 no-print">
+                            <button onclick="setCategoryChartType('bar')" id="btnChartBar" class="px-2.5 py-1 text-xs font-semibold rounded bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300">Bar</button>
+                            <button onclick="setCategoryChartType('polarArea')" id="btnChartPolar" class="px-2.5 py-1 text-xs font-semibold rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">Polar</button>
+                        </div>
+                    </div>
+                    <div class="relative h-60 my-3">
+                        <canvas id="categoryDistributionChart"></canvas>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                    <span class="flex items-center space-x-1">
+                        <i class="fa-solid fa-circle-info text-brand-500"></i>
+                        <span>Categorized by career readiness and recreational limits</span>
+                    </span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300">Target ratio: 80% Tech / 20% Leisure</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="task-table-wrap bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+            <!-- Table Header Controls: Search, Filters, Bulk Actions -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">Execution Backlog & Pipeline</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Click any row checkbox to immediately toggle pending/completed status</p>
+                </div>
+
+                <!-- Interactive Filters & Search -->
+                <div class="flex flex-wrap items-center gap-2.5 no-print">
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+                        <input type="text" id="taskSearchInput" oninput="handleSearchFilter()" placeholder="Search tasks..." class="w-44 sm:w-56 pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    </div>
+
+                    <!-- Status Filter Tabs -->
+                    <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        <button onclick="setStatusFilter('all')" id="filterTabAll" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs">All</button>
+                        <button onclick="setStatusFilter('completed')" id="filterTabCompleted" class="px-2.5 py-1 rounded-md hover:text-slate-900 dark:hover:text-white">Completed</button>
+                        <button onclick="setStatusFilter('pending')" id="filterTabPending" class="px-2.5 py-1 rounded-md hover:text-slate-900 dark:hover:text-white">Pending</button>
+                    </div>
+
+                    <!-- Category Filter Dropdown -->
+                    <select id="categoryFilterSelect" onchange="handleCategoryFilter(this.value)" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="ALL">All Categories</option>
+                        <option value="MERN Stack">MERN Stack</option>
+                        <option value="Frontend">Frontend Core</option>
+                        <option value="Database">Database & Mongo</option>
+                        <option value="Engineering">Core Engineering</option>
+                        <option value="Portfolio">Portfolio Showcase</option>
+                        <option value="Gaming">Gaming / Leisure</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- The Task Table Component -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                        <tr>
+                            <th scope="col" class="py-3.5 px-4 w-12 text-center">Status</th>
+                            <th scope="col" class="py-3.5 px-4">Task Description</th>
+                            <th scope="col" class="py-3.5 px-4">Domain Category</th>
+                            <th scope="col" class="py-3.5 px-4">Impact Priority</th>
+                            <th scope="col" class="py-3.5 px-4">Estimated Effort</th>
+                            <th scope="col" class="py-3.5 px-4 text-right no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                        <!-- Dynamically populated via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyTableState" class="hidden py-12 text-center">
+                <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-lg mb-3">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+                <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">No tasks match your current filter</h4>
+                <p class="text-xs text-slate-400 mt-1">Try switching filters or resetting search keywords.</p>
+                <button onclick="resetAllFilters()" class="mt-3 px-3 py-1.5 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">Reset Filters</button>
+            </div>
+
+            <!-- Table Footer Quick Stats -->
+            <div class="px-4 py-3 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                <span id="showingRecordsText">Showing 8 of 8 items</span>
+                <div class="flex items-center space-x-4">
+                    <span class="flex items-center space-x-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Click checkbox to toggle</span>
+                    </span>
+                    <span class="flex items-center space-x-1.5">
+                        <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                        <span>Auto-syncs metrics & charts</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Strategic Card 1: Immediate Sprint -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm border-l-4 border-l-brand-600">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm">Sprint Focus: DOM & Mongo</h4>
+                    <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Next 24h</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
+                    Reinforce the MERN interview accomplishment by executing deep-dive JavaScript DOM manipulation and MongoDB indexing / aggregation queries.
+                </p>
+                <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span>Priority: Critical</span>
+                    <span class="text-brand-600 dark:text-brand-400 cursor-pointer hover:underline" onclick="highlightTask('DOM')">View in backlog →</span>
+                </div>
+            </div>
+
+            <!-- Strategic Card 2: Portfolio Momentum -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm border-l-4 border-l-purple-600">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm">Portfolio Proof of Work</h4>
+                    <span class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Showcase</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
+                    Host your MERN applications and code repositories on your live portfolio. Recruiters value live production URLs above theoretical checklists.
+                </p>
+                <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span>Priority: High</span>
+                    <span class="text-purple-600 dark:text-purple-400 cursor-pointer hover:underline" onclick="highlightTask('portfolio')">View in backlog →</span>
+                </div>
+            </div>
+
+            <!-- Strategic Card 3: Healthy Leisure Buffer -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm border-l-4 border-l-amber-500">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-slate-900 dark:text-white text-sm">Balanced Reward Protocol</h4>
+                    <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Recovery</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-3">
+                    Strictly cap gaming at 1 hour post-study. Using leisure as a conscious reward prevents burn-out and avoids afternoon attention fragmentation.
+                </p>
+                <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span>Target Cap: 60 mins</span>
+                    <span class="text-amber-500 cursor-pointer hover:underline" onclick="highlightTask('gaming')">View in backlog →</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="addTaskModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-bold text-slate-900 dark:text-white text-base">Add New Task</h3>
+                <button onclick="closeAddTaskModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form onsubmit="handleAddTaskSubmit(event)" class="mt-4 space-y-3.5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Task Title</label>
+                    <input type="text" id="newTaskTitle" required placeholder="e.g. Build REST API authentication" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Category</label>
+                        <select id="newTaskCategory" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="MERN Stack">MERN Stack</option>
+                            <option value="Frontend">Frontend Core</option>
+                            <option value="Database">Database & Mongo</option>
+                            <option value="Engineering">Core Engineering</option>
+                            <option value="Portfolio">Portfolio</option>
+                            <option value="Gaming">Gaming / Leisure</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Priority</label>
+                        <select id="newTaskPriority" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="Critical">Critical</option>
+                            <option value="High" selected>High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Est. Duration</label>
+                        <input type="text" id="newTaskEffort" placeholder="e.g. 1.5 hrs" value="1.0 hr" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Initial Status</label>
+                        <select id="newTaskStatus" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="pending" selected>Pending</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="pt-3 flex items-center justify-end space-x-2">
+                    <button type="button" onclick="closeAddTaskModal()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white shadow">Create Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2.5 px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xl text-xs font-semibold pointer-events-none">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 dark:text-emerald-600"></i>
+        <span id="toastMessage">Action completed successfully</span>
+    </div>
+
+    <script>
+        // Initial Dataset as provided in user request
+        const initialTasks = [
+            { id: 1, title: 'CODING', status: 'pending', category: 'Engineering', priority: 'Medium', effort: '2.0 hrs', type: 'tech' },
+            { id: 2, title: 'GAMING', status: 'pending', category: 'Gaming', priority: 'Low', effort: '1.0 hr', type: 'leisure' },
+            { id: 3, title: 'Learn JavaScript DOM', status: 'pending', category: 'Frontend', priority: 'High', effort: '1.5 hrs', type: 'tech' },
+            { id: 4, title: 'Practice MongoDB', status: 'pending', category: 'Database', priority: 'High', effort: '2.0 hrs', type: 'tech' },
+            { id: 5, title: 'Prepare for MERN interview', status: 'completed', category: 'MERN Stack', priority: 'Critical', effort: '3.0 hrs', type: 'tech' },
+            { id: 6, title: 'Work on portfolio website', status: 'pending', category: 'Portfolio', priority: 'High', effort: '2.5 hrs', type: 'tech' },
+            { id: 7, title: 'Play gaming for 1 hour', status: 'pending', category: 'Gaming', priority: 'Low', effort: '1.0 hr', type: 'leisure' },
+            { id: 8, title: "Complete today's coding task", status: 'completed', category: 'Engineering', priority: 'High', effort: '1.5 hrs', type: 'tech' }
+        ];
+
+        // Reactive Application State
+        let tasks = JSON.parse(localStorage.getItem('devpulse_tasks')) || initialTasks;
+        let currentFilterStatus = 'all';
+        let currentCategoryFilter = 'ALL';
+        let currentSearchQuery = '';
+        let categoryChartType = 'bar';
+
+        // Chart References
+        let statusDonutChart = null;
+        let categoryDistributionChart = null;
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            renderTable();
+            updateKPIs();
+            renderCharts();
+            document.getElementById('printDate').textContent = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        });
+
+        // ==========================================
+        // Theme Management (Light / Dark Mode)
+        // ==========================================
+        function initTheme() {
+            if (localStorage.getItem('devpulse_theme') === 'dark' || 
+                (!('devpulse_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                updateThemeIcon(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateThemeIcon(false);
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('devpulse_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+            
+            // Re-render chart colors to match theme
+            if (statusDonutChart && categoryDistributionChart) {
+                renderCharts();
+            }
+            showToast(isDark ? 'Dark theme activated' : 'Light theme activated', 'fa-moon');
+        }
+
+        function updateThemeIcon(isDark) {
+            const icon = document.getElementById('themeIcon');
+            if (isDark) {
+                icon.className = 'fa-solid fa-sun text-amber-400';
+            } else {
+                icon.className = 'fa-solid fa-moon text-slate-600';
+            }
+        }
+
+        // ==========================================
+        // Reactive KPI and AI Analytics Computation
+        // ==========================================
+        function updateKPIs() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.status === 'completed').length;
+            const pending = total - completed;
+            const completionRate = total > 0 ? ((completed / total) * 100).toFixed(1) : '0.0';
+
+            // Workload distribution
+            const techCount = tasks.filter(t => t.type === 'tech').length;
+            const leisureCount = tasks.filter(t => t.type === 'leisure').length;
+            const techPct = total > 0 ? Math.round((techCount / total) * 100) : 0;
+
+            // Crucial High/Critical Priority Items
+            const highItems = tasks.filter(t => t.priority === 'Critical' || t.priority === 'High');
+            const highCompleted = highItems.filter(t => t.status === 'completed').length;
+            const highImpactPct = highItems.length > 0 ? Math.round((highCompleted / highItems.length) * 100) : 0;
+
+            // DOM elements update
+            document.getElementById('kpiTotalTasks').textContent = total;
+            document.getElementById('kpiCompletedTasks').textContent = completed;
+            document.getElementById('kpiCompletedPct').textContent = `${completionRate}%`;
+            document.getElementById('kpiCompletedBar').style.width = `${completionRate}%`;
+
+            document.getElementById('kpiPendingTasks').textContent = pending;
+            const pendingRate = total > 0 ? ((pending / total) * 100).toFixed(1) : '0.0';
+            document.getElementById('kpiPendingPct').textContent = `${pendingRate}%`;
+            document.getElementById('kpiPendingBar').style.width = `${pendingRate}%`;
+
+            document.getElementById('kpiTechRatio').textContent = `${techPct}%`;
+            document.getElementById('kpiTechBar').style.width = `${techPct}%`;
+
+            document.getElementById('kpiHighImpactScore').textContent = `${highImpactPct}%`;
+            document.getElementById('kpiHighImpactSub').textContent = `${highCompleted} of ${highItems.length} Crucial`;
+            document.getElementById('kpiImpactBar').style.width = `${highImpactPct}%`;
+
+            document.getElementById('donutTotalCountTag').textContent = `${total} Total`;
+            document.getElementById('centerDonutPct').textContent = `${Math.round(completionRate)}%`;
+            document.getElementById('legendCompletedVal').textContent = completed;
+            document.getElementById('legendPendingVal').textContent = pending;
+
+            // Update Dynamic AI Recommendation
+            evaluateAIRecommendations(completed, pending, total, highCompleted, highItems.length);
+        }
+
+        function evaluateAIRecommendations(completed, pending, total, highCompleted, highTotal) {
+            const aiText = document.getElementById('aiDynamicInsight');
+            const badge = document.getElementById('aiScoreBadge');
+
+            if (completed === total && total > 0) {
+                badge.textContent = "100% SPRINT ACCOMPLISHED";
+                badge.className = "text-xs font-semibold text-emerald-300";
+                aiText.innerHTML = "Outstanding discipline! All daily engineering goals and career preparation tasks are accomplished. Feel free to enjoy extended leisure without cognitive guilt.";
+            } else if (tasks.some(t => t.title.toLowerCase().includes('mern') && t.status === 'completed')) {
+                badge.textContent = "Strategic Core Mastered";
+                badge.className = "text-xs font-semibold text-emerald-300";
+                aiText.innerHTML = `High-leverage achievement: <strong class="text-white">Prepare for MERN interview</strong> is completed! Next immediate acceleration: Tackle <strong class="text-white">Learn JavaScript DOM</strong> and <strong class="text-white">Practice MongoDB</strong> before spending the 1-hour gaming credit.`;
+            } else {
+                badge.textContent = "Action Required";
+                badge.className = "text-xs font-semibold text-amber-300";
+                aiText.innerHTML = `Focus on the highest leverage interview prep task immediately. Limit leisure activities until critical MERN and JavaScript milestones are checked.`;
+            }
+        }
+
+        // ==========================================
+        // Render Interactive Task Table
+        // ==========================================
+        function getFilteredTasks() {
+            return tasks.filter(task => {
+                // Status Filter
+                const matchesStatus = currentFilterStatus === 'all' || task.status === currentFilterStatus;
+                
+                // Category Filter
+                const matchesCategory = currentCategoryFilter === 'ALL' || task.category === currentCategoryFilter;
+
+                // Search Filter
+                const query = currentSearchQuery.toLowerCase().trim();
+                const matchesSearch = !query || 
+                    task.title.toLowerCase().includes(query) || 
+                    task.category.toLowerCase().includes(query) ||
+                    task.priority.toLowerCase().includes(query);
+
+                return matchesStatus && matchesCategory && matchesSearch;
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('taskTableBody');
+            const emptyState = document.getElementById('emptyTableState');
+            const countText = document.getElementById('showingRecordsText');
+            const filtered = getFilteredTasks();
+
+            countText.textContent = `Showing ${filtered.length} of ${tasks.length} items`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            tbody.innerHTML = filtered.map(task => {
+                const isCompleted = task.status === 'completed';
+                
+                // Priority color badges
+                let priorityClass = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                if (task.priority === 'Critical') priorityClass = 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 font-bold';
+                else if (task.priority === 'High') priorityClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 font-semibold';
+                else if (task.priority === 'Medium') priorityClass = 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300';
+                else if (task.priority === 'Low') priorityClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+
+                // Category pill color
+                let categoryColor = 'border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-300';
+                if (task.category === 'MERN Stack') categoryColor = 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300 dark:border-brand-800';
+                if (task.category === 'Frontend') categoryColor = 'border-sky-300 bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800';
+                if (task.category === 'Database') categoryColor = 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800';
+                if (task.category === 'Gaming') categoryColor = 'border-purple-300 bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800';
+
+                return `
+                <tr id="task-row-${task.id}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
+                    <td class="py-3.5 px-4 text-center">
+                        <button onclick="toggleTaskStatus(${task.id})" class="w-5 h-5 rounded flex items-center justify-center border transition-all ${
+                            isCompleted 
+                                ? 'bg-emerald-500 border-emerald-500 text-white shadow-xs' 
+                                : 'border-slate-300 dark:border-slate-600 hover:border-brand-500 text-transparent'
+                        }">
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                        </button>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-medium ${isCompleted ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-slate-100'}">
+                                ${escapeHtml(task.title)}
+                            </span>
+                            ${task.priority === 'Critical' ? '<i class="fa-solid fa-fire text-rose-500 text-xs" title="Critical Priority"></i>' : ''}
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${categoryColor}">
+                            ${task.category}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="inline-block text-[11px] px-2 py-0.5 rounded-md ${priorityClass}">
+                            ${task.priority}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs font-mono text-slate-500 dark:text-slate-400">
+                        <i class="fa-regular fa-clock mr-1 text-[10px]"></i>${task.effort}
+                    </td>
+                    <td class="py-3.5 px-4 text-right no-print">
+                        <div class="flex items-center justify-end space-x-1 opacity-80 group-hover:opacity-100">
+                            <button onclick="toggleTaskStatus(${task.id})" title="${isCompleted ? 'Mark Pending' : 'Mark Completed'}" class="p-1.5 text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition">
+                                <i class="fa-solid ${isCompleted ? 'fa-rotate-left' : 'fa-check'} text-xs"></i>
+                            </button>
+                            <button onclick="deleteTask(${task.id})" title="Delete task" class="p-1.5 text-slate-400 hover:text-red-500 transition">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // Task Interactions (Toggle, Add, Delete)
+        // ==========================================
+        function toggleTaskStatus(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.status = task.status === 'completed' ? 'pending' : 'completed';
+                saveTasks();
+                renderTable();
+                updateKPIs();
+                renderCharts();
+                showToast(`Task status updated: "${task.title}"`, task.status === 'completed' ? 'fa-circle-check' : 'fa-clock');
+            }
+        }
+
+        function deleteTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            tasks = tasks.filter(t => t.id !== id);
+            saveTasks();
+            renderTable();
+            updateKPIs();
+            renderCharts();
+            showToast(`Task removed from backlog`, 'fa-trash-can');
+        }
+
+        function saveTasks() {
+            localStorage.setItem('devpulse_tasks', JSON.stringify(tasks));
+        }
+
+        // Add Task Modal Controls
+        function openAddTaskModal() {
+            document.getElementById('addTaskModal').classList.remove('hidden');
+            document.getElementById('newTaskTitle').focus();
+        }
+
+        function closeAddTaskModal() {
+            document.getElementById('addTaskModal').classList.add('hidden');
+            document.getElementById('newTaskTitle').value = '';
+        }
+
+        function handleAddTaskSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('newTaskTitle').value.trim();
+            const category = document.getElementById('newTaskCategory').value;
+            const priority = document.getElementById('newTaskPriority').value;
+            const effort = document.getElementById('newTaskEffort').value.trim() || '1.0 hr';
+            const status = document.getElementById('newTaskStatus').value;
+            const type = category === 'Gaming' ? 'leisure' : 'tech';
+
+            if (!title) return;
+
+            const newTask = {
+                id: Date.now(),
+                title,
+                category,
+                priority,
+                effort,
+                status,
+                type
+            };
+
+            tasks.unshift(newTask);
+            saveTasks();
+            closeAddTaskModal();
+            renderTable();
+            updateKPIs();
+            renderCharts();
+            showToast('New task successfully created', 'fa-plus');
+        }
+
+        // Filter Handlers
+        function setStatusFilter(status) {
+            currentFilterStatus = status;
+            ['all', 'completed', 'pending'].forEach(tab => {
+                const btn = document.getElementById('filterTab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+                if (tab === status) {
+                    btn.className = "px-2.5 py-1 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs font-semibold";
+                } else {
+                    btn.className = "px-2.5 py-1 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium";
+                }
+            });
+            renderTable();
+        }
+
+        function handleCategoryFilter(val) {
+            currentCategoryFilter = val;
+            renderTable();
+        }
+
+        function handleSearchFilter() {
+            currentSearchQuery = document.getElementById('taskSearchInput').value;
+            renderTable();
+        }
+
+        function resetAllFilters() {
+            currentFilterStatus = 'all';
+            currentCategoryFilter = 'ALL';
+            currentSearchQuery = '';
+            document.getElementById('taskSearchInput').value = '';
+            document.getElementById('categoryFilterSelect').value = 'ALL';
+            setStatusFilter('all');
+        }
+
+        // Smart Deduplication action from AI Banner
+        function autoResolveDeduplication() {
+            // Condense broad tags like "CODING" and "GAMING" if specific items exist
+            const hadCoding = tasks.some(t => t.title.toLowerCase() === 'coding');
+            const hadGaming = tasks.some(t => t.title.toLowerCase() === 'gaming');
+
+            tasks = tasks.filter(t => t.title.toLowerCase() !== 'coding' && t.title.toLowerCase() !== 'gaming');
+            
+            saveTasks();
+            renderTable();
+            updateKPIs();
+            renderCharts();
+            showToast(hadCoding || hadGaming ? 'Merged redundant general tags!' : 'Backlog is already optimized!', 'fa-wand-magic-sparkles');
+        }
+
+        function refreshRecommendations() {
+            updateKPIs();
+            showToast('Analytics cache refreshed with latest metrics', 'fa-arrows-rotate');
+        }
+
+        function highlightTask(keyword) {
+            currentSearchQuery = keyword;
+            document.getElementById('taskSearchInput').value = keyword;
+            setStatusFilter('all');
+            renderTable();
+            showToast(`Filtered backlog by "${keyword}"`, 'fa-filter');
+        }
+
+        // ==========================================
+        // Chart.js Visualizations (Donut & Distribution)
+        // ==========================================
+        function isDarkModeActive() {
+            return document.documentElement.classList.contains('dark');
+        }
+
+        function renderCharts() {
+            const isDark = isDarkModeActive();
+            const textMuted = isDark ? '#94a3b8' : '#64748b';
+            const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+
+            // Data aggregations
+            const completedCount = tasks.filter(t => t.status === 'completed').length;
+            const pendingCount = tasks.length - completedCount;
+
+            // Chart 1: Donut Chart
+            const ctxDonut = document.getElementById('statusDonutChart').getContext('2d');
+            if (statusDonutChart) statusDonutChart.destroy();
+
+            statusDonutChart = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending'],
+                    datasets: [{
+                        data: [completedCount, pendingCount],
+                        backgroundColor: ['#10b981', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '76%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = completedCount + pendingCount;
+                                    const pct = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                                    return ` ${context.label}: ${context.raw} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Aggregate Category Distribution
+            const categoriesMap = {};
+            tasks.forEach(t => {
+                categoriesMap[t.category] = (categoriesMap[t.category] || 0) + 1;
+            });
+            const catLabels = Object.keys(categoriesMap);
+            const catValues = Object.values(categoriesMap);
+            const catColors = [
+                '#6366f1', '#0ea5e9', '#10b981', '#a855f7', '#f59e0b', '#ec4899', '#64748b'
+            ];
+
+            // Chart 2: Category Breakdown
+            const ctxCategory = document.getElementById('categoryDistributionChart').getContext('2d');
+            if (categoryDistributionChart) categoryDistributionChart.destroy();
+
+            categoryDistributionChart = new Chart(ctxCategory, {
+                type: categoryChartType,
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        label: 'Tasks Count',
+                        data: catValues,
+                        backgroundColor: categoryChartType === 'bar' ? '#6366f1' : catColors,
+                        borderRadius: 6,
+                        maxBarThickness: 34
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: categoryChartType === 'polarArea',
+                            position: 'right',
+                            labels: { color: textMuted, font: { size: 10 } }
+                        }
+                    },
+                    scales: categoryChartType === 'bar' ? {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, color: textMuted },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: { color: textMuted },
+                            grid: { display: false }
+                        }
+                    } : {}
+                }
+            });
+        }
+
+        function setCategoryChartType(type) {
+            categoryChartType = type;
+            const btnBar = document.getElementById('btnChartBar');
+            const btnPolar = document.getElementById('btnChartPolar');
+
+            if (type === 'bar') {
+                btnBar.className = "px-2.5 py-1 text-xs font-semibold rounded bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300";
+                btnPolar.className = "px-2.5 py-1 text-xs font-semibold rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200";
+            } else {
+                btnPolar.className = "px-2.5 py-1 text-xs font-semibold rounded bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300";
+                btnBar.className = "px-2.5 py-1 text-xs font-semibold rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200";
+            }
+            renderCharts();
+        }
+
+        // ==========================================
+        // Print / PDF Export Handler
+        // ==========================================
+        function handlePrintExport() {
+            window.print();
+        }
+
+        // ==========================================
+        // Toast Notification System
+        // ==========================================
+        let toastTimeout;
+        function showToast(msg, iconName = 'fa-circle-check') {
+            const toast = document.getElementById('toastNotification');
+            const msgEl = document.getElementById('toastMessage');
+            const iconEl = document.getElementById('toastIcon');
+
+            clearTimeout(toastTimeout);
+            msgEl.textContent = msg;
+            iconEl.className = `fa-solid ${iconName} text-emerald-400 dark:text-emerald-600`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2600);
+        }
+
+        // Helper: HTML Sanitize
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
